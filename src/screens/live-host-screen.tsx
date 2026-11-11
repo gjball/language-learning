@@ -1,16 +1,19 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useEffectEvent, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Chip } from '@/components/chip';
-import { JoinQrCode } from '@/components/join-qr-code';
+import { Avatar } from '@/components/avatar';
+import { ExternalLink } from '@/components/external-link';
+import { JoinQrCode, getAppAddress, joinUrl } from '@/components/join-qr-code';
 import { LiveTimer } from '@/components/live-timer';
+import { Pill } from '@/components/pill';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
+import { useTheme } from '@/hooks/use-theme';
 import {
   beginDiscussion,
   endSession,
@@ -46,6 +49,7 @@ export function LiveHostScreen({
   onParticipants,
 }: LiveHostScreenProps) {
   const now = useNow();
+  const theme = useTheme();
   const [error, setError] = useState<string | null>(null);
 
   type Changes = Parameters<typeof updateSession>[1];
@@ -106,40 +110,92 @@ export function LiveHostScreen({
     </ThemedText>
   );
 
+  const header = (status: string) => (
+    <View style={styles.topBar}>
+      <View style={styles.brand}>
+        <View style={[styles.brandMark, { backgroundColor: theme.accent }]} />
+        <ThemedText type="smallBold">Round robin</ThemedText>
+      </View>
+      <Pill label={status} tone="accent" />
+    </View>
+  );
+
   if (session.status === 'lobby') {
+    const address = getAppAddress();
+    const link = address ? joinUrl(address, session.code) : null;
+
     return (
       <Screen>
-        <View style={styles.codeBlock}>
-          <ThemedText themeColor="textSecondary">Join code</ThemedText>
-          <ThemedText style={styles.code} selectable>
-            {formatCode(session.code)}
-          </ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.centered}>
-            Students open the app and enter this code.
-          </ThemedText>
-          <JoinQrCode code={session.code} />
+        {header('Waiting for students')}
+
+        <View style={[styles.hero, { backgroundColor: theme.hero }]}>
+          <View style={styles.heroText}>
+            <Text style={[styles.heroLabel, { color: theme.onHeroMuted }]}>Join code</Text>
+            <Text style={[styles.code, { color: theme.onHero }]} selectable>
+              {formatCode(session.code)}
+            </Text>
+            {address && link ? (
+              <View style={styles.heroLines}>
+                <Text style={[styles.heroBody, { color: theme.onHeroMuted }]}>
+                  Scan to join, or go to
+                </Text>
+                <ExternalLink href={link as Href & string}>
+                  <Text style={[styles.heroLink, { color: theme.onHero }]}>
+                    {address.replace(/^https?:\/\//, '')}
+                  </Text>
+                </ExternalLink>
+              </View>
+            ) : (
+              <Text style={[styles.heroBody, { color: theme.onHeroMuted }]}>
+                Students open the app and enter this code.
+              </Text>
+            )}
+          </View>
+          {link && <JoinQrCode url={link} />}
         </View>
 
-        <View style={styles.section}>
-          <ThemedText type="smallBold">Students ({participants.length})</ThemedText>
+        <ThemedView type="backgroundElement" style={styles.card}>
+          <View style={styles.cardHeader}>
+            <ThemedText type="smallBold">Students</ThemedText>
+            <Pill label={String(participants.length)} tone="accent" />
+          </View>
           {participants.length === 0 ? (
-            <ThemedText themeColor="textSecondary">Waiting for students to join…</ThemedText>
+            <View style={[styles.empty, { borderColor: theme.border }]}>
+              <ThemedText themeColor="textSecondary" style={styles.centered}>
+                Waiting for students to join…
+              </ThemedText>
+            </View>
           ) : (
             <View style={styles.chips}>
               {participants.map((p) => (
-                <Chip
+                <Pressable
                   key={p.id}
-                  label={`${p.name}  ✕`}
+                  accessibilityRole="button"
                   accessibilityLabel={`Remove ${p.name}`}
                   onPress={() => remove(p)}
-                />
+                  style={({ pressed }) => [
+                    styles.student,
+                    { backgroundColor: theme.background },
+                    pressed && styles.pressed,
+                  ]}>
+                  <Avatar id={p.id} name={p.name} size={28} />
+                  <ThemedText type="small">{p.name}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    ✕
+                  </ThemedText>
+                </Pressable>
               ))}
             </View>
           )}
-          <ThemedText type="small" themeColor="textSecondary">
-            {session.level} · {session.round_count} {session.round_count === 1 ? 'round' : 'rounds'}{' '}
-            of {session.round_minutes} min · {session.auto_advance ? 'automatic' : 'manual'} timer
-          </ThemedText>
+        </ThemedView>
+
+        <View style={styles.pills}>
+          <Pill label={`Level ${session.level}`} />
+          <Pill
+            label={`${session.round_count} ${session.round_count === 1 ? 'round' : 'rounds'}`}
+          />
+          <Pill label={`${session.round_minutes} min each`} />
+          <Pill label={session.auto_advance ? 'Automatic timer' : 'Manual timer'} />
         </View>
 
         <View style={styles.section}>
@@ -169,31 +225,47 @@ export function LiveHostScreen({
 
   return (
     <Screen>
-      <View style={styles.header}>
+      {header(`Join code ${formatCode(session.code)}`)}
+
+      <View style={styles.section}>
         <ThemedText type="subtitle">
           Round {session.round + 1} of {session.round_count}
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Join code {formatCode(session.code)}
-        </ThemedText>
+        <View style={styles.steps}>
+          {Array.from({ length: session.round_count }, (_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.step,
+                { backgroundColor: i <= session.round ? theme.accent : theme.backgroundSelected },
+              ]}
+            />
+          ))}
+        </View>
       </View>
 
-      <LiveTimer session={session} now={now} />
-
-      <View style={styles.centeredRow}>
-        {remaining > 0 && (
-          <Button
-            label={running ? 'Pause' : session.auto_advance ? 'Resume' : 'Start timer'}
-            onPress={() =>
-              save(running ? pauseTimer(session, Date.now()) : startTimer(session, Date.now()))
-            }
-          />
-        )}
-        <Button label="Reset" variant="secondary" onPress={() => save(resetTimer(session))} />
-      </View>
+      <ThemedView type="backgroundElement" style={[styles.card, styles.timerCard]}>
+        <LiveTimer session={session} now={now} />
+        <View style={styles.centeredRow}>
+          {remaining > 0 && (
+            <Button
+              label={running ? 'Pause' : session.auto_advance ? 'Resume' : 'Start timer'}
+              onPress={() =>
+                save(running ? pauseTimer(session, Date.now()) : startTimer(session, Date.now()))
+              }
+            />
+          )}
+          <Button label="Reset" variant="secondary" onPress={() => save(resetTimer(session))} />
+        </View>
+      </ThemedView>
 
       <View style={styles.section}>
-        <ThemedText type="smallBold">Partners</ThemedText>
+        <View style={styles.cardHeader}>
+          <ThemedText type="smallBold">Partners</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Questions shown at {session.level}
+          </ThemedText>
+        </View>
         <View style={styles.groups}>
           {groups.map((group, index) => {
             const question = questionForGroup(session, session.level, index, groups.length);
@@ -201,16 +273,32 @@ export function LiveHostScreen({
               <ThemedView
                 key={group.map((p) => p.id).join('+')}
                 type="backgroundElement"
-                style={styles.group}>
-                <ThemedText type="smallBold">{group.map((p) => p.name).join('  ·  ')}</ThemedText>
-                {question && <ThemedText>{question.text}</ThemedText>}
+                style={[styles.card, styles.group]}>
+                <View style={styles.groupPeople}>
+                  <View style={styles.avatars}>
+                    {group.map((p, i) => (
+                      <View
+                        key={p.id}
+                        style={[
+                          styles.avatarRing,
+                          { borderColor: theme.backgroundElement },
+                          i > 0 && styles.avatarOverlap,
+                        ]}>
+                        <Avatar id={p.id} name={p.name} />
+                      </View>
+                    ))}
+                  </View>
+                  <ThemedText type="smallBold" style={styles.groupNames}>
+                    {group.map((p) => p.name).join('  ·  ')}
+                  </ThemedText>
+                </View>
+                {question && <ThemedText themeColor="textSecondary">{question.text}</ThemedText>}
               </ThemedView>
             );
           })}
         </View>
         <ThemedText type="small" themeColor="textSecondary">
-          Questions shown at {session.level}. Students who change level on their phone see a
-          different question.
+          Students who change level on their phone see a different question.
         </ThemedText>
         {waiting.length > 0 && (
           <ThemedText type="small" themeColor="textSecondary">
@@ -234,27 +322,120 @@ export function LiveHostScreen({
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: Spacing.one,
-  },
   section: {
     gap: Spacing.two,
   },
-  codeBlock: {
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  brand: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
-    paddingVertical: Spacing.three,
+  },
+  brandMark: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  // The code sits beside the QR code on wide screens and above it on phones.
+  hero: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.four,
+    padding: Spacing.four,
+    borderRadius: 28,
+  },
+  heroText: {
+    flexGrow: 1,
+    flexBasis: 260,
+    gap: Spacing.one,
+  },
+  heroLabel: {
+    fontSize: 14,
+    fontWeight: 700,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   code: {
-    fontSize: 56,
-    lineHeight: 64,
-    fontWeight: 700,
+    fontSize: 60,
+    lineHeight: 72,
+    fontWeight: 800,
+    letterSpacing: 2,
     fontVariant: ['tabular-nums'],
+  },
+  heroLines: {
+    alignItems: 'flex-start',
+    gap: Spacing.half,
+  },
+  heroBody: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  heroLink: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: 700,
+    textDecorationLine: 'underline',
+  },
+  card: {
+    padding: Spacing.four,
+    borderRadius: Spacing.four,
+    gap: Spacing.three,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  empty: {
+    paddingVertical: Spacing.four,
+    paddingHorizontal: Spacing.three,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: Spacing.three,
   },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
+  },
+  student: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.one,
+    paddingLeft: Spacing.one,
+    paddingRight: Spacing.three,
+    borderRadius: Spacing.four,
+    minHeight: 36,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  pills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  steps: {
+    flexDirection: 'row',
+    gap: Spacing.one,
+  },
+  step: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+  },
+  timerCard: {
+    alignItems: 'center',
+    gap: Spacing.four,
   },
   centeredRow: {
     flexDirection: 'row',
@@ -267,12 +448,27 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   group: {
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-    gap: Spacing.one,
     flexGrow: 1,
-    flexBasis: 220,
+    flexBasis: 260,
+    gap: Spacing.two,
+  },
+  groupPeople: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  avatars: {
+    flexDirection: 'row',
+  },
+  avatarRing: {
+    borderWidth: 2,
+    borderRadius: 18,
+  },
+  avatarOverlap: {
+    marginLeft: -10,
+  },
+  groupNames: {
+    flexShrink: 1,
   },
   centered: {
     textAlign: 'center',
