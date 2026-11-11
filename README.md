@@ -1,56 +1,46 @@
-# Welcome to your Expo app 👋
+# Round robin
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A conversation-practice app for language classes. Students are paired up, given
+a question to discuss, and rotated to a new partner each round on a timer.
 
-## Get started
+Built with Expo (React Native + TypeScript). It runs as a web app now and can
+be built for Android and iOS later.
 
-1. Install dependencies
+## Two ways to run a session
 
-   ```bash
-   npm install
-   ```
+- **Phones (like Kahoot):** the teacher hosts a session and gets a 6-digit join
+  code. Students enter the code on their own phones and see their partner, the
+  question and the timer. Each student can pick their own level (A1–C2).
+- **One shared screen:** the teacher types in the students and shows the
+  pairings on a single screen. Needs no setup.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Press `w` for the web version, or scan the QR code with Expo Go.
 
-### Other setup steps
+## Setting up phone sessions (one time)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Phone sessions need a free [Supabase](https://supabase.com) project so the
+phones can see the same session.
 
-## Learn more
+1. Create a project at supabase.com.
+2. In the dashboard open **SQL Editor**, paste in the contents of
+   `supabase/schema.sql`, and run it.
+3. Open **Authentication → Sign In / Providers** and turn on
+   **Allow anonymous sign-ins** (this is the guest ID students get).
+4. Copy `.env.example` to `.env` and fill in the project URL and the
+   publishable key from **Project Settings → API Keys**.
+5. Restart `npx expo start`.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Where things are
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `src/data/questions.ts` — the question bank (placeholder questions for now).
+- `src/lib/round-robin.ts` — who is paired with whom each round.
+- `src/lib/live-session.ts` — phone sessions (talks to Supabase).
+- `src/app/` — the pages: start page, host setup, session, single screen.
+- `supabase/schema.sql` — database tables and access rules.

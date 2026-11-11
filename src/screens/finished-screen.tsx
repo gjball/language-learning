@@ -9,9 +9,15 @@ type FinishedScreenProps = {
   roundsPlayed: number;
   studentCount: number;
   onRestart: () => void;
+  restartLabel?: string;
 };
 
-export function FinishedScreen({ roundsPlayed, studentCount, onRestart }: FinishedScreenProps) {
+export function FinishedScreen({
+  roundsPlayed,
+  studentCount,
+  onRestart,
+  restartLabel = 'New session',
+}: FinishedScreenProps) {
   return (
     <Screen>
       <View style={styles.summary}>
@@ -20,7 +26,7 @@ export function FinishedScreen({ roundsPlayed, studentCount, onRestart }: Finish
           {studentCount} students · {roundsPlayed} {roundsPlayed === 1 ? 'round' : 'rounds'}
         </ThemedText>
       </View>
-      <Button label="New session" onPress={onRestart} />
+      <Button label={restartLabel} onPress={onRestart} />
     </Screen>
   );
 }
