@@ -16,6 +16,7 @@ import {
   formatCode,
   nextRound,
   pauseTimer,
+  questionForGroup,
   remainingMs,
   removeParticipant,
   resetTimer,
@@ -192,15 +193,23 @@ export function LiveHostScreen({
       <View style={styles.section}>
         <ThemedText type="smallBold">Partners</ThemedText>
         <View style={styles.groups}>
-          {groups.map((group) => (
-            <ThemedView
-              key={group.map((p) => p.id).join('+')}
-              type="backgroundElement"
-              style={styles.group}>
-              <ThemedText>{group.map((p) => p.name).join('  ·  ')}</ThemedText>
-            </ThemedView>
-          ))}
+          {groups.map((group, index) => {
+            const question = questionForGroup(session, session.level, index, groups.length);
+            return (
+              <ThemedView
+                key={group.map((p) => p.id).join('+')}
+                type="backgroundElement"
+                style={styles.group}>
+                <ThemedText type="smallBold">{group.map((p) => p.name).join('  ·  ')}</ThemedText>
+                {question && <ThemedText>{question.text}</ThemedText>}
+              </ThemedView>
+            );
+          })}
         </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          Questions shown at {session.level}. Students who change level on their phone see a
+          different question.
+        </ThemedText>
         {waiting.length > 0 && (
           <ThemedText type="small" themeColor="textSecondary">
             Joining next round: {waiting.map((p) => p.name).join(', ')}
@@ -259,6 +268,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+    gap: Spacing.one,
     flexGrow: 1,
     flexBasis: 220,
   },
