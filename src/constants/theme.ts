@@ -17,6 +17,11 @@ export const Colors = {
     accent: '#1570D1',
     onAccent: '#ffffff',
     warning: '#C2410C',
+    accentSoft: '#E3EFFC',
+    border: '#DCDDE3',
+    hero: '#123F7D',
+    onHero: '#ffffff',
+    onHeroMuted: '#C5D9F4',
   },
   dark: {
     text: '#ffffff',
@@ -27,6 +32,11 @@ export const Colors = {
     accent: '#4BA3F5',
     onAccent: '#00111F',
     warning: '#FB923C',
+    accentSoft: '#11263D',
+    border: '#34373C',
+    hero: '#0F3264',
+    onHero: '#ffffff',
+    onHeroMuted: '#B4CCEE',
   },
 } as const;
 

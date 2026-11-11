@@ -152,7 +152,10 @@ export function rosterFrom(participants: LiveParticipant[]): Participant[] {
   return participants.map((p) => ({ id: p.id, name: p.name }));
 }
 
-function stageDurationMs(session: LiveSession, stage: LiveSession['stage']): number {
+export function stageDurationMs(
+  session: LiveSession,
+  stage: LiveSession['stage'] = session.stage,
+): number {
   return stage === 'changeover' ? CHANGEOVER_SECONDS * 1000 : session.round_minutes * 60 * 1000;
 }
 
