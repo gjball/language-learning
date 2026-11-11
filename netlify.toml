@@ -1,0 +1,14 @@
+# Netlify builds the web version of the app and publishes it.
+[build]
+  command = "npx expo export --platform web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The app is a single page: send every address (such as /session/123456) to
+# it and let the app work out which screen to show.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
