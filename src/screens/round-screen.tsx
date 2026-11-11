@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -8,7 +9,7 @@ import { Spacing } from '@/constants/theme';
 import type { Question } from '@/data/questions';
 import { formatClock, useCountdown } from '@/hooks/use-countdown';
 import { groupsForRound } from '@/lib/round-robin';
-import type { Session } from '@/lib/session';
+import { CHANGEOVER_SECONDS, type Session } from '@/lib/session';
 
 type RoundScreenProps = {
   session: Session;
@@ -28,7 +29,10 @@ export function RoundScreen({
   onNext,
   onEnd,
 }: RoundScreenProps) {
-  const timer = useCountdown(session.roundMinutes * 60);
+  const auto = session.autoAdvance;
+  const [stage, setStage] = useState<'changeover' | 'discussion'>(
+    auto ? 'changeover' : 'discussion',
+  );
   const groups = groupsForRound(session.participants, round);
   const lastRound = round + 1 >= session.roundCount;
 
@@ -58,23 +62,23 @@ export function RoundScreen({
         )}
       </ThemedView>
 
-      <View style={styles.timer}>
-        <ThemedText
-          accessibilityRole="timer"
-          themeColor={timer.finished ? 'warning' : 'text'}
-          style={styles.clock}>
-          {timer.finished ? "Time's up" : formatClock(timer.remainingSeconds)}
-        </ThemedText>
-        <View style={styles.row}>
-          {!timer.finished && (
-            <Button
-              label={timer.running ? 'Pause' : 'Start timer'}
-              onPress={timer.running ? timer.pause : timer.start}
-            />
-          )}
-          <Button label="Reset" variant="secondary" onPress={timer.reset} />
-        </View>
-      </View>
+      {stage === 'changeover' ? (
+        <TimerPanel
+          key="changeover"
+          seconds={CHANGEOVER_SECONDS}
+          label="Find your partner"
+          autoStart
+          onFinish={() => setStage('discussion')}
+        />
+      ) : (
+        <TimerPanel
+          key="discussion"
+          seconds={session.roundMinutes * 60}
+          label={auto ? 'Talk' : undefined}
+          autoStart={auto}
+          onFinish={auto ? onNext : undefined}
+        />
+      )}
 
       <View style={styles.section}>
         <ThemedText type="smallBold">Partners</ThemedText>
@@ -95,6 +99,42 @@ export function RoundScreen({
         {!lastRound && <Button label="End session" variant="secondary" onPress={onEnd} />}
       </View>
     </Screen>
+  );
+}
+
+type TimerPanelProps = {
+  seconds: number;
+  label?: string;
+  autoStart?: boolean;
+  onFinish?: () => void;
+};
+
+function TimerPanel({ seconds, label, autoStart, onFinish }: TimerPanelProps) {
+  const timer = useCountdown(seconds, { autoStart, onFinish });
+
+  return (
+    <View style={styles.timer}>
+      {label && (
+        <ThemedText type="smallBold" themeColor="textSecondary">
+          {label}
+        </ThemedText>
+      )}
+      <ThemedText
+        accessibilityRole="timer"
+        themeColor={timer.finished ? 'warning' : 'text'}
+        style={styles.clock}>
+        {timer.finished ? "Time's up" : formatClock(timer.remainingSeconds)}
+      </ThemedText>
+      <View style={styles.row}>
+        {!timer.finished && (
+          <Button
+            label={timer.running ? 'Pause' : autoStart ? 'Resume' : 'Start timer'}
+            onPress={timer.running ? timer.pause : timer.start}
+          />
+        )}
+        <Button label="Reset" variant="secondary" onPress={timer.reset} />
+      </View>
+    </View>
   );
 }
 
@@ -121,7 +161,7 @@ const styles = StyleSheet.create({
   },
   timer: {
     alignItems: 'center',
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   clock: {
     fontSize: 64,

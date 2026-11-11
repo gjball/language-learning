@@ -1,12 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
+
+type CountdownOptions = {
+  /** Start counting immediately instead of waiting for `start()`. */
+  autoStart?: boolean;
+  /** Called once when the countdown reaches zero. */
+  onFinish?: () => void;
+};
 
 /**
- * A pausable countdown. It starts paused so the host can let people find
- * their partners before the clock runs.
+ * A pausable countdown. Unless `autoStart` is set it begins paused, so the
+ * host can let people find their partners before the clock runs.
  */
-export function useCountdown(durationSeconds: number) {
+export function useCountdown(durationSeconds: number, options: CountdownOptions = {}) {
   const [remainingMs, setRemainingMs] = useState(durationSeconds * 1000);
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState(options.autoStart ?? false);
 
   const finished = remainingMs <= 0;
   const ticking = running && !finished;
@@ -25,6 +32,11 @@ export function useCountdown(durationSeconds: number) {
     return () => clearInterval(interval);
   }, [ticking]);
 
+  const notifyFinished = useEffectEvent(() => options.onFinish?.());
+  useEffect(() => {
+    if (finished) notifyFinished();
+  }, [finished]);
+
   return {
     remainingSeconds: Math.ceil(remainingMs / 1000),
     running: ticking,
@@ -32,7 +44,7 @@ export function useCountdown(durationSeconds: number) {
     start: () => setRunning(true),
     pause: () => setRunning(false),
     reset: () => {
-      setRunning(false);
+      setRunning(options.autoStart ?? false);
       setRemainingMs(durationSeconds * 1000);
     },
   };

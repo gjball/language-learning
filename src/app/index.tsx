@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS: SessionSettings = {
   categories: [...CATEGORIES],
   roundMinutes: 3,
   roundCount: 3,
+  autoAdvance: false,
 };
 
 export default function HomeScreen() {

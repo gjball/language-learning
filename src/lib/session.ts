@@ -8,7 +8,15 @@ export type SessionSettings = {
   categories: Category[];
   roundMinutes: number;
   roundCount: number;
+  /**
+   * When true the whole session runs on its own: each round starts after a
+   * short changeover and moves on when its time is up.
+   */
+  autoAdvance: boolean;
 };
+
+/** Time given at the start of each automatic round to find a partner. */
+export const CHANGEOVER_SECONDS = 20;
 
 /** A session that is being played. */
 export type Session = SessionSettings & {

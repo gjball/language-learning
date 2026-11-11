@@ -9,7 +9,7 @@ import { Spacing } from '@/constants/theme';
 import { CATEGORIES, LEVELS, findQuestions, type Category } from '@/data/questions';
 import { useTheme } from '@/hooks/use-theme';
 import { uniqueRoundCount } from '@/lib/round-robin';
-import type { SessionSettings } from '@/lib/session';
+import { CHANGEOVER_SECONDS, type SessionSettings } from '@/lib/session';
 
 const ROUND_MINUTES = [1, 2, 3, 5, 10];
 const MAX_ROUNDS = 20;
@@ -26,7 +26,7 @@ export function SetupScreen({ settings, onChange, onStart }: SetupScreenProps) {
   // Counts every guest ever added so IDs are never reused after a removal.
   const [guestCounter, setGuestCounter] = useState(settings.participants.length);
 
-  const { participants, level, categories, roundMinutes, roundCount } = settings;
+  const { participants, level, categories, roundMinutes, roundCount, autoAdvance } = settings;
   const questionCount = findQuestions(level, categories).length;
   const uniqueRounds = uniqueRoundCount(participants.length);
 
@@ -149,6 +149,27 @@ export function SetupScreen({ settings, onChange, onStart }: SetupScreenProps) {
             />
           ))}
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <ThemedText type="smallBold">Timer</ThemedText>
+        <View style={styles.chips}>
+          <Chip
+            label="Manual"
+            selected={!autoAdvance}
+            onPress={() => onChange({ ...settings, autoAdvance: false })}
+          />
+          <Chip
+            label="Automatic"
+            selected={autoAdvance}
+            onPress={() => onChange({ ...settings, autoAdvance: true })}
+          />
+        </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          {autoAdvance
+            ? `The session runs by itself: ${CHANGEOVER_SECONDS} seconds to find a partner, then the round, then straight on to the next one.`
+            : 'You start the timer and move to the next round yourself.'}
+        </ThemedText>
       </View>
 
       <View style={styles.section}>
