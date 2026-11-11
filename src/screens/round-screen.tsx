@@ -43,7 +43,7 @@ export function RoundScreen({
           Round {round + 1} of {session.roundCount}
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {question.level} · {question.category}
+          {question.level} · {question.topic}
         </ThemedText>
       </View>
 

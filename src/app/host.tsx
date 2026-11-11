@@ -47,7 +47,7 @@ export default function HostRoute() {
       <View style={styles.section}>
         <Button
           label={busy ? 'Creating…' : 'Create session'}
-          disabled={busy || settings.categories.length === 0}
+          disabled={busy}
           onPress={create}
         />
         {error && (

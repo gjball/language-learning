@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { findQuestions } from '@/data/questions';
+import { useQuestions } from '@/hooks/use-questions';
 import {
   DEFAULT_ROUND_SETTINGS,
   shuffle,
@@ -20,6 +21,7 @@ type Phase =
 const DEFAULT_SETTINGS: SessionSettings = { ...DEFAULT_ROUND_SETTINGS, participants: [] };
 
 export default function SingleScreenSession() {
+  const questions = useQuestions();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [phase, setPhase] = useState<Phase>({ name: 'setup' });
 
@@ -34,7 +36,7 @@ export default function SingleScreenSession() {
             name: 'playing',
             session: {
               ...settings,
-              questions: shuffle(findQuestions(settings.level, settings.categories)),
+              questions: shuffle(findQuestions(questions, settings.level, settings.categories)),
             },
             round: 0,
             questionIndex: 0,

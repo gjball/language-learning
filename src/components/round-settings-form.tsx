@@ -4,7 +4,8 @@ import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { CATEGORIES, LEVELS, findQuestions } from '@/data/questions';
+import { LEVELS, findQuestions, topicsAt } from '@/data/questions';
+import { useQuestions } from '@/hooks/use-questions';
 import { uniqueRoundCount } from '@/lib/round-robin';
 import { CHANGEOVER_SECONDS, type RoundSettings } from '@/lib/session';
 
@@ -20,7 +21,7 @@ type RoundSettingsFormProps = {
   levelHint?: string;
 };
 
-/** Level, categories, round length, timer mode and number of rounds. */
+/** Level, topics, round length, timer mode and number of rounds. */
 export function RoundSettingsForm({
   settings,
   onChange,
@@ -28,7 +29,9 @@ export function RoundSettingsForm({
   levelHint,
 }: RoundSettingsFormProps) {
   const { level, categories, roundMinutes, roundCount, autoAdvance } = settings;
-  const questionCount = findQuestions(level, categories).length;
+  const questions = useQuestions();
+  const topics = topicsAt(questions, level);
+  const questionCount = findQuestions(questions, level, categories).length;
   const uniqueRounds = uniqueRoundCount(studentCount);
 
   return (
@@ -37,7 +40,13 @@ export function RoundSettingsForm({
         <ThemedText type="smallBold">Level</ThemedText>
         <View style={styles.chips}>
           {LEVELS.map((l) => (
-            <Chip key={l} label={l} selected={l === level} onPress={() => onChange({ level: l })} />
+            <Chip
+              key={l}
+              label={l}
+              selected={l === level}
+              // Each level has its own topics, so a new level starts from "All".
+              onPress={() => l !== level && onChange({ level: l, categories: [] })}
+            />
           ))}
         </View>
         {levelHint && (
@@ -48,9 +57,14 @@ export function RoundSettingsForm({
       </View>
 
       <View style={styles.section}>
-        <ThemedText type="smallBold">Question categories</ThemedText>
+        <ThemedText type="smallBold">Topics</ThemedText>
         <View style={styles.chips}>
-          {CATEGORIES.map((c) => (
+          <Chip
+            label="All"
+            selected={categories.length === 0}
+            onPress={() => onChange({ categories: [] })}
+          />
+          {topics.map((c) => (
             <Chip
               key={c}
               label={c}
