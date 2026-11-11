@@ -11,6 +11,7 @@ import { Pill } from '@/components/pill';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { WeekFocus } from '@/components/week-focus';
 import { Spacing } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
 import { useQuestions } from '@/hooks/use-questions';
@@ -193,6 +194,7 @@ export function LiveHostScreen({
 
         <View style={styles.pills}>
           <Pill label={`Level ${session.level}`} />
+          {session.week != null && <Pill label={`Week ${session.week}`} />}
           <Pill
             label={`${session.round_count} ${session.round_count === 1 ? 'round' : 'rounds'}`}
           />
@@ -233,6 +235,7 @@ export function LiveHostScreen({
         <ThemedText type="subtitle">
           Round {session.round + 1} of {session.round_count}
         </ThemedText>
+        <WeekFocus level={session.level} week={session.week} />
         <View style={styles.steps}>
           {Array.from({ length: session.round_count }, (_, i) => (
             <View
@@ -264,9 +267,6 @@ export function LiveHostScreen({
       <View style={styles.section}>
         <View style={styles.cardHeader}>
           <ThemedText type="smallBold">Partners</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Level {session.level}
-          </ThemedText>
         </View>
         <View style={styles.groups}>
           {groups.map((group, index) => {

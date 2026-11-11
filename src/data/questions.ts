@@ -11,8 +11,10 @@ export type Level = (typeof LEVELS)[number];
 export type Question = {
   text: string;
   level: Level;
-  /** Free text, e.g. "Travel". Each level has its own set of topics. */
+  /** A loose label, e.g. "Travel". Questions tied to a week take its topic. */
   topic: string;
+  /** The week (1 to 16) this question belongs to; none means a general question. */
+  week?: number | null;
 };
 
 export const BUILT_IN_QUESTIONS: Question[] = [
@@ -78,25 +80,23 @@ export const BUILT_IN_QUESTIONS: Question[] = [
 ];
 
 /**
- * Questions at a level, limited to the chosen topics. An empty list of topics
- * means "all of them"; so does a choice that matches nothing (for example a
- * topic that has since been renamed), so a round is never left without a
- * question if the level has any.
+ * The questions for a level and week. With no week chosen, or when the week
+ * has no questions of its own yet, this is every question at the level, so a
+ * round is never left without a question if the level has any.
  */
 export function findQuestions(
   questions: readonly Question[],
   level: Level,
-  topics: readonly string[],
+  week: number | null | undefined,
 ): Question[] {
   const atLevel = questions.filter((q) => q.level === level);
-  if (topics.length === 0) return atLevel;
+  if (week == null) return atLevel;
 
-  const chosen = atLevel.filter((q) => topics.includes(q.topic));
-  return chosen.length > 0 ? chosen : atLevel;
+  const forWeek = atLevel.filter((q) => q.week === week);
+  return forWeek.length > 0 ? forWeek : atLevel;
 }
 
-/** The topics available at a level, in alphabetical order. */
-export function topicsAt(questions: readonly Question[], level: Level): string[] {
-  const topics = questions.filter((q) => q.level === level).map((q) => q.topic);
-  return [...new Set(topics)].sort((x, y) => x.localeCompare(y));
+/** How many questions are written specifically for a level and week. */
+export function countForWeek(questions: readonly Question[], level: Level, week: number): number {
+  return questions.filter((q) => q.level === level && q.week === week).length;
 }

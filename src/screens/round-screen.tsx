@@ -5,6 +5,7 @@ import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { WeekFocus } from '@/components/week-focus';
 import { Spacing } from '@/constants/theme';
 import type { Question } from '@/data/questions';
 import { formatClock, useCountdown } from '@/hooks/use-countdown';
@@ -42,9 +43,7 @@ export function RoundScreen({
         <ThemedText type="subtitle">
           Round {round + 1} of {session.roundCount}
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {question.level} · {question.topic}
-        </ThemedText>
+        <WeekFocus level={session.level} week={session.week} />
       </View>
 
       <ThemedView type="backgroundElement" style={styles.card}>
