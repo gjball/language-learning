@@ -10,7 +10,7 @@ be built for Android and iOS later.
 
 - **Phones (like Kahoot):** the teacher hosts a session and gets a 6-digit join
   code. Students enter the code on their own phones and see their partner, the
-  question and the timer. Each student can pick their own level (A1–C2).
+  question and the timer.
 - **One shared screen:** the teacher types in the students and shows the
   pairings on a single screen. Needs no setup.
 

@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -9,7 +8,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { LEVELS, type Level } from '@/data/questions';
+import { LEVELS } from '@/data/questions';
 import { useNow } from '@/hooks/use-now';
 import {
   questionForGroup,
@@ -29,8 +28,8 @@ type LiveStudentScreenProps = {
 /** What a student sees on their own phone. */
 export function LiveStudentScreen({ session, participants, me }: LiveStudentScreenProps) {
   const now = useNow();
-  // Each student can move away from the level the teacher chose.
-  const [level, setLevel] = useState<Level>(session.level);
+  // The teacher sets one level for everyone.
+  const level = session.level;
 
   async function leave() {
     await removeParticipant(me.id).catch(() => {});
@@ -119,11 +118,11 @@ export function LiveStudentScreen({ session, participants, me }: LiveStudentScre
         <ThemedText type="smallBold">Level</ThemedText>
         <View style={styles.chips}>
           {LEVELS.map((l) => (
-            <Chip key={l} label={l} selected={l === level} onPress={() => setLevel(l)} />
+            <Chip key={l} label={l} selected={l === level} />
           ))}
         </View>
         <ThemedText type="small" themeColor="textSecondary">
-          Choose the same level as your partner to see the same question.
+          Your teacher sets the level for this session.
         </ThemedText>
       </View>
     </Screen>

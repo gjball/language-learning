@@ -263,7 +263,7 @@ export function LiveHostScreen({
         <View style={styles.cardHeader}>
           <ThemedText type="smallBold">Partners</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Questions shown at {session.level}
+            Level {session.level}
           </ThemedText>
         </View>
         <View style={styles.groups}>
@@ -297,9 +297,6 @@ export function LiveHostScreen({
             );
           })}
         </View>
-        <ThemedText type="small" themeColor="textSecondary">
-          Students who change level on their phone see a different question.
-        </ThemedText>
         {waiting.length > 0 && (
           <ThemedText type="small" themeColor="textSecondary">
             Joining next round: {waiting.map((p) => p.name).join(', ')}

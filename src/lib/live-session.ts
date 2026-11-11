@@ -237,7 +237,7 @@ export function remainingMs(session: LiveSession, now: number): number {
 
 /**
  * The question a group discusses this round at the given level. Every phone
- * works this out the same way, so partners who pick the same level see the
+ * works this out the same way, so partners see the
  * same question, and different groups get different questions.
  */
 export function questionForGroup(

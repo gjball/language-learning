@@ -4,14 +4,17 @@ import QRCode from 'react-native-qrcode-svg';
 import { Spacing } from '@/constants/theme';
 
 /**
- * The web address students should open. In a browser this is wherever the app
- * is being served from; in the installed app it comes from EXPO_PUBLIC_APP_URL.
+ * The web address students should open. A configured public address
+ * (EXPO_PUBLIC_APP_URL) wins, so the QR code always points at the public site
+ * even when the teacher is viewing a private preview copy of it. Otherwise,
+ * in a browser, it is wherever the app is being served from.
  */
 export function getAppAddress(): string | null {
-  if (Platform.OS === 'web') {
-    return typeof window === 'undefined' ? null : window.location.origin;
-  }
-  return process.env.EXPO_PUBLIC_APP_URL?.replace(/\/$/, '') ?? null;
+  const configured = process.env.EXPO_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (configured && /^https?:\/\/[^/]+$/.test(configured)) return configured;
+
+  if (Platform.OS === 'web' && typeof window !== 'undefined') return window.location.origin;
+  return null;
 }
 
 /** The link that opens the app with the join code already filled in. */
