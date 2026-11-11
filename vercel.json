@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export --platform web",
+  "buildCommand": "EXPO_PUBLIC_APP_URL=https://$VERCEL_PROJECT_PRODUCTION_URL npx expo export --platform web",
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [{ "source": "/:path*", "destination": "/" }]

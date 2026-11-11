@@ -40,7 +40,7 @@ export default function HostRoute() {
 
       <RoundSettingsForm
         settings={settings}
-        levelHint="This is the starting level. Students can change it on their own phones."
+        levelHint="Every student gets questions at this level."
         onChange={(changes) => setSettings({ ...settings, ...changes })}
       />
 
