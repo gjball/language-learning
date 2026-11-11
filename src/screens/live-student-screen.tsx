@@ -10,6 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { LEVELS } from '@/data/questions';
 import { useNow } from '@/hooks/use-now';
+import { useQuestions } from '@/hooks/use-questions';
 import {
   questionForGroup,
   removeParticipant,
@@ -28,6 +29,7 @@ type LiveStudentScreenProps = {
 /** What a student sees on their own phone. */
 export function LiveStudentScreen({ session, participants, me }: LiveStudentScreenProps) {
   const now = useNow();
+  const questions = useQuestions();
   // The teacher sets one level for everyone.
   const level = session.level;
 
@@ -82,7 +84,7 @@ export function LiveStudentScreen({ session, participants, me }: LiveStudentScre
   }
 
   const partners = groups[groupIndex].filter((p) => p.id !== me.id);
-  const question = questionForGroup(session, level, groupIndex, groups.length);
+  const question = questionForGroup(session, questions, level, groupIndex, groups.length);
 
   return (
     <Screen>
@@ -109,7 +111,7 @@ export function LiveStudentScreen({ session, participants, me }: LiveStudentScre
         </ThemedText>
         {question && (
           <ThemedText type="small" themeColor="textSecondary">
-            {question.level} · {question.category}
+            {question.level} · {question.topic}
           </ThemedText>
         )}
       </ThemedView>

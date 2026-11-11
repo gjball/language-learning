@@ -39,7 +39,10 @@ phones can see the same session.
 
 ## Where things are
 
-- `src/data/questions.ts` — the question bank (placeholder questions for now).
+- The `questions` table in Supabase — the question bank. Edit it in the Supabase
+  dashboard under **Table Editor → questions** (columns: `level`, `topic`, `text`).
+- `src/data/questions.ts` — built-in fallback questions, used when the database
+  is not set up.
 - `src/lib/round-robin.ts` — who is paired with whom each round.
 - `src/lib/live-session.ts` — phone sessions (talks to Supabase).
 - `src/app/` — the pages: start page, host setup, session, single screen.

@@ -3,7 +3,7 @@
  * join with that code, and every phone follows the same session row in
  * Supabase. See supabase/schema.sql for the tables.
  */
-import { LEVELS, findQuestions, type Category, type Level, type Question } from '@/data/questions';
+import { LEVELS, findQuestions, type Level, type Question } from '@/data/questions';
 import type { Participant } from '@/lib/round-robin';
 import { CHANGEOVER_SECONDS, shuffle, type RoundSettings } from '@/lib/session';
 import { ensureSignedIn, requireSupabase } from '@/lib/supabase';
@@ -16,7 +16,8 @@ export type LiveSession = {
   host_id: string;
   status: 'lobby' | 'playing' | 'finished';
   level: Level;
-  categories: Category[];
+  /** The topics the teacher chose; empty means all topics at the level. */
+  categories: string[];
   round_minutes: number;
   round_count: number;
   auto_advance: boolean;
@@ -242,11 +243,12 @@ export function remainingMs(session: LiveSession, now: number): number {
  */
 export function questionForGroup(
   session: LiveSession,
+  questions: readonly Question[],
   level: Level,
   groupIndex: number,
   groupCount: number,
 ): Question | null {
-  const pool = findQuestions(level, session.categories);
+  const pool = findQuestions(questions, level, session.categories);
   if (pool.length === 0) return null;
 
   const ordered = shuffle(pool, session.seed + LEVELS.indexOf(level));

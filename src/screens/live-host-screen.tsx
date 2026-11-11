@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
+import { useQuestions } from '@/hooks/use-questions';
 import { useTheme } from '@/hooks/use-theme';
 import {
   beginDiscussion,
@@ -49,6 +50,7 @@ export function LiveHostScreen({
   onParticipants,
 }: LiveHostScreenProps) {
   const now = useNow();
+  const questions = useQuestions();
   const theme = useTheme();
   const [error, setError] = useState<string | null>(null);
 
@@ -268,7 +270,7 @@ export function LiveHostScreen({
         </View>
         <View style={styles.groups}>
           {groups.map((group, index) => {
-            const question = questionForGroup(session, session.level, index, groups.length);
+            const question = questionForGroup(session, questions, session.level, index, groups.length);
             return (
               <ThemedView
                 key={group.map((p) => p.id).join('+')}

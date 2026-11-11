@@ -8,6 +8,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findQuestions } from '@/data/questions';
+import { useQuestions } from '@/hooks/use-questions';
 import { useTheme } from '@/hooks/use-theme';
 import type { SessionSettings } from '@/lib/session';
 
@@ -25,13 +26,14 @@ export function SetupScreen({ settings, onChange, onStart, onBack }: SetupScreen
   const [guestCounter, setGuestCounter] = useState(settings.participants.length);
 
   const { participants } = settings;
-  const questionCount = findQuestions(settings.level, settings.categories).length;
+  const questions = useQuestions();
+  const questionCount = findQuestions(questions, settings.level, settings.categories).length;
 
   const problem =
     participants.length < 2
       ? 'Add at least two students to start.'
       : questionCount === 0
-        ? 'Choose at least one category.'
+        ? `There are no questions at ${settings.level} yet.`
         : null;
 
   function addParticipant() {

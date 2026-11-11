@@ -1,10 +1,11 @@
-import { CATEGORIES, type Category, type Level, type Question } from '@/data/questions';
+import type { Level, Question } from '@/data/questions';
 import type { Participant } from '@/lib/round-robin';
 
 /** How the rounds are run; shared by the single-screen and phone versions. */
 export type RoundSettings = {
   level: Level;
-  categories: Category[];
+  /** Topics to draw questions from; empty means all topics at the level. */
+  categories: string[];
   roundMinutes: number;
   roundCount: number;
   /**
@@ -21,7 +22,7 @@ export type SessionSettings = RoundSettings & {
 
 export const DEFAULT_ROUND_SETTINGS: RoundSettings = {
   level: 'B1',
-  categories: [...CATEGORIES],
+  categories: [],
   roundMinutes: 3,
   roundCount: 3,
   autoAdvance: false,
