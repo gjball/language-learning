@@ -124,7 +124,7 @@ end $$;
 --
 -- Edit these in the Supabase dashboard: Table Editor -> questions. You can add,
 -- change or delete rows there, or import a CSV file with the columns
--- level, topic, text. Set "active" to false to hide a question without
+-- level, week, text. Set "active" to false to hide a question without
 -- deleting it. The app reads the list when it opens.
 
 create table if not exists public.questions (
@@ -202,3 +202,141 @@ select * from (values
   ('C2', 'Opinions', 'Are we responsible for the unintended consequences of our good intentions?')
 ) as starter (level, topic, text)
 where not exists (select 1 from public.questions);
+
+-- ---------------------------------------------------------------------------
+-- Syllabus: 16 weeks per level
+-- ---------------------------------------------------------------------------
+-- Each level is divided into 16 weeks, and each week has a topic and a
+-- grammar focus. The teacher picks the level and week when hosting.
+--
+-- Edit these in the Supabase dashboard: Table Editor -> weeks. Change the
+-- "topic" and "grammar" cells for any level and week.
+
+create table if not exists public.weeks (
+  level text not null check (level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
+  week integer not null check (week between 1 and 16),
+  topic text not null check (char_length(topic) between 1 and 80),
+  grammar text not null default '' check (char_length(grammar) <= 200),
+  primary key (level, week)
+);
+
+alter table public.weeks enable row level security;
+
+drop policy if exists "Anyone can read weeks" on public.weeks;
+create policy "Anyone can read weeks"
+  on public.weeks for select to anon, authenticated
+  using (true);
+
+grant select on public.weeks to anon, authenticated;
+
+-- Draft plan, added only if the table is empty.
+insert into public.weeks (level, week, topic, grammar)
+select * from (values
+  ('A1', 1, 'Greetings and introductions', 'be: am / is / are'),
+  ('A1', 2, 'Countries and nationalities', 'be: questions and negatives'),
+  ('A1', 3, 'Family', 'Possessive adjectives and ''s'),
+  ('A1', 4, 'Everyday objects', 'a / an, plurals, this / that / these / those'),
+  ('A1', 5, 'Daily routines', 'Present simple: I / you / we / they'),
+  ('A1', 6, 'Free time', 'Present simple: he / she / it'),
+  ('A1', 7, 'Food and drink', 'Countable and uncountable nouns, some / any'),
+  ('A1', 8, 'Home', 'there is / there are'),
+  ('A1', 9, 'Places in town', 'Prepositions of place'),
+  ('A1', 10, 'Times and dates', 'Prepositions of time: in / on / at'),
+  ('A1', 11, 'Abilities and hobbies', 'can / can''t'),
+  ('A1', 12, 'Likes and dislikes', 'like / love / hate + -ing'),
+  ('A1', 13, 'Clothes and shopping', 'Present continuous'),
+  ('A1', 14, 'Weather and seasons', 'Adverbs of frequency'),
+  ('A1', 15, 'Yesterday', 'was / were'),
+  ('A1', 16, 'Weekends and holidays', 'Past simple: regular verbs'),
+  ('A2', 1, 'Life stories', 'Past simple: regular and irregular verbs'),
+  ('A2', 2, 'Travel and transport', 'Past simple: questions and negatives'),
+  ('A2', 3, 'Childhood memories', 'Past continuous'),
+  ('A2', 4, 'Food and restaurants', 'Quantifiers: much / many / a lot of'),
+  ('A2', 5, 'Shopping', 'Comparative adjectives'),
+  ('A2', 6, 'Cities and countries', 'Superlative adjectives'),
+  ('A2', 7, 'Plans and weekends', 'be going to'),
+  ('A2', 8, 'Predictions and weather', 'will / won''t'),
+  ('A2', 9, 'Experiences', 'Present perfect with ever / never'),
+  ('A2', 10, 'Health and the body', 'should / shouldn''t'),
+  ('A2', 11, 'Rules at work and school', 'have to / don''t have to / must'),
+  ('A2', 12, 'Technology and gadgets', 'Present perfect with just / already / yet'),
+  ('A2', 13, 'Jobs', 'Verb + -ing or to + infinitive'),
+  ('A2', 14, 'Entertainment and media', 'Adjectives and adverbs of manner'),
+  ('A2', 15, 'Nature and animals', 'First conditional'),
+  ('A2', 16, 'Invitations and arrangements', 'Present continuous for future arrangements'),
+  ('B1', 1, 'Getting to know you', 'Present simple and continuous, state verbs'),
+  ('B1', 2, 'Travel stories', 'Narrative tenses: past simple, past continuous, past perfect'),
+  ('B1', 3, 'Life experiences', 'Present perfect and past simple'),
+  ('B1', 4, 'Work and careers', 'Present perfect continuous with for / since'),
+  ('B1', 5, 'Future plans', 'will, be going to, present continuous'),
+  ('B1', 6, 'Education', 'Modals of obligation and advice'),
+  ('B1', 7, 'Health and lifestyle', 'Zero and first conditionals'),
+  ('B1', 8, 'Money', 'Second conditional'),
+  ('B1', 9, 'Media and news', 'Passive: present and past'),
+  ('B1', 10, 'Technology', 'Defining relative clauses'),
+  ('B1', 11, 'The environment', 'will / may / might for predictions'),
+  ('B1', 12, 'Childhood and change', 'used to / would'),
+  ('B1', 13, 'Relationships', 'Reported speech: statements'),
+  ('B1', 14, 'Food culture', 'Comparisons: as ... as, much / far + comparative'),
+  ('B1', 15, 'Crime and rules', 'Modals of deduction: must / might / can''t'),
+  ('B1', 16, 'Entertainment', 'Gerunds and infinitives'),
+  ('B2', 1, 'Identity and personality', 'Present habits: tend to, will, keep + -ing'),
+  ('B2', 2, 'Memorable journeys', 'Narrative tenses including past perfect continuous'),
+  ('B2', 3, 'Work-life balance', 'Future continuous and future perfect'),
+  ('B2', 4, 'Science and discovery', 'Passive in all tenses, have something done'),
+  ('B2', 5, 'Regrets and decisions', 'Third conditional'),
+  ('B2', 6, 'What if?', 'Mixed conditionals'),
+  ('B2', 7, 'Media and truth', 'Reported speech and reporting verbs'),
+  ('B2', 8, 'Consumerism', 'Non-defining and reduced relative clauses'),
+  ('B2', 9, 'Health and medicine', 'Past modals: should have / could have'),
+  ('B2', 10, 'Mysteries', 'Past modals of deduction'),
+  ('B2', 11, 'Sustainability', 'wish / if only'),
+  ('B2', 12, 'Cities and housing', 'Articles and quantifiers'),
+  ('B2', 13, 'Arts and culture', 'Gerund or infinitive with a change of meaning'),
+  ('B2', 14, 'Technology and society', 'Contrast and concession: although, despite, however'),
+  ('B2', 15, 'Education and learning', 'used to / be used to / get used to'),
+  ('B2', 16, 'Communication and manners', 'Indirect questions and question tags'),
+  ('C1', 1, 'Language and identity', 'Aspect: perfect and continuous forms'),
+  ('C1', 2, 'Work and ambition', 'Future forms: be about to, be due to, be bound to'),
+  ('C1', 3, 'Ethics and dilemmas', 'Mixed and inverted conditionals'),
+  ('C1', 4, 'Media and influence', 'Passive reporting: is said to, is believed to'),
+  ('C1', 5, 'Science and progress', 'Cleft sentences: What ..., It is ... that'),
+  ('C1', 6, 'Memory and the past', 'Participle clauses'),
+  ('C1', 7, 'Politics and power', 'Inversion after negative adverbials'),
+  ('C1', 8, 'Money and inequality', 'Hedging and distancing: seem, appear, tend'),
+  ('C1', 9, 'Psychology and behaviour', 'Modals of speculation, present and past'),
+  ('C1', 10, 'Environment and responsibility', 'Unreal past: wish, it''s time, would rather'),
+  ('C1', 11, 'Culture and globalisation', 'Relative clauses with prepositions and quantifiers'),
+  ('C1', 12, 'Art and creativity', 'Ellipsis and substitution'),
+  ('C1', 13, 'Technology and privacy', 'Formal discourse markers'),
+  ('C1', 14, 'Education and success', 'Perfect and passive gerunds and infinitives'),
+  ('C1', 15, 'Health and well-being', 'Emphasis: do / did, intensifiers'),
+  ('C1', 16, 'The future of society', 'Nominalisation'),
+  ('C2', 1, 'Language and thought', 'Nuanced tense and aspect choices'),
+  ('C2', 2, 'Truth and knowledge', 'Epistemic modality and hedging'),
+  ('C2', 3, 'Justice and law', 'Subjunctive and formal mandative structures'),
+  ('C2', 4, 'Power and persuasion', 'Rhetorical devices and emphatic inversion'),
+  ('C2', 5, 'Ethics of technology', 'Advanced conditionals: but for, were it not for, supposing'),
+  ('C2', 6, 'Identity and belonging', 'Fronting and marked word order'),
+  ('C2', 7, 'Economics and value', 'Nominalisation and dense noun phrases'),
+  ('C2', 8, 'Art and interpretation', 'Metaphor, idiom and connotation'),
+  ('C2', 9, 'History and memory', 'Future in the past, perfect infinitives'),
+  ('C2', 10, 'Science and uncertainty', 'Concession: albeit, notwithstanding, much as'),
+  ('C2', 11, 'Media and manipulation', 'Reporting with stance and distancing'),
+  ('C2', 12, 'Humour and irony', 'Understatement and register shifts'),
+  ('C2', 13, 'Nature and humanity', 'Participle and verbless clauses'),
+  ('C2', 14, 'Work and meaning', 'Ellipsis, substitution and cohesion'),
+  ('C2', 15, 'Globalisation and culture', 'Complex relative and cleft structures'),
+  ('C2', 16, 'The human condition', 'Style, register and precision')
+) as draft (level, week, topic, grammar)
+where not exists (select 1 from public.weeks);
+
+-- Questions can belong to a week. Questions with no week are general
+-- questions for the level, used when a week has none of its own yet. The
+-- "topic" column on questions is now optional; the week carries the topic.
+alter table public.questions add column if not exists week integer check (week between 1 and 16);
+alter table public.questions alter column topic set default 'General';
+create index if not exists questions_level_week_idx on public.questions (level, week);
+
+-- The week the teacher chose for a session (empty means any week).
+alter table public.sessions add column if not exists week integer check (week between 1 and 16);

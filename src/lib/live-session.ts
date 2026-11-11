@@ -16,8 +16,8 @@ export type LiveSession = {
   host_id: string;
   status: 'lobby' | 'playing' | 'finished';
   level: Level;
-  /** The topics the teacher chose; empty means all topics at the level. */
-  categories: string[];
+  /** The week the teacher chose; missing or null means any week. */
+  week?: number | null;
   round_minutes: number;
   round_count: number;
   auto_advance: boolean;
@@ -51,23 +51,32 @@ export async function createSession(settings: RoundSettings): Promise<LiveSessio
   const client = requireSupabase();
   await ensureSignedIn();
 
+  const base = {
+    level: settings.level,
+    // Older column, kept so the insert works on any version of the database.
+    categories: [],
+    round_minutes: settings.roundMinutes,
+    round_count: settings.roundCount,
+    auto_advance: settings.autoAdvance,
+    seed: Math.floor(Math.random() * 2 ** 31),
+  };
+  // A database that has not had the latest schema.sql run has no "week"
+  // column yet; in that case the session is created without one.
+  let includeWeek = true;
+
   // Codes are random, so on the rare clash with an existing one, try another.
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const { data, error } = await client
       .from('sessions')
-      .insert({
-        code: randomCode(),
-        level: settings.level,
-        categories: settings.categories,
-        round_minutes: settings.roundMinutes,
-        round_count: settings.roundCount,
-        auto_advance: settings.autoAdvance,
-        seed: Math.floor(Math.random() * 2 ** 31),
-      })
+      .insert({ ...base, code: randomCode(), ...(includeWeek ? { week: settings.week } : {}) })
       .select()
       .single();
 
     if (!error) return data as LiveSession;
+    if (includeWeek && (error.code === 'PGRST204' || error.code === '42703')) {
+      includeWeek = false;
+      continue;
+    }
     if (error.code !== '23505') throw new Error(error.message);
   }
   throw new Error('Could not create a session. Please try again.');
@@ -248,7 +257,7 @@ export function questionForGroup(
   groupIndex: number,
   groupCount: number,
 ): Question | null {
-  const pool = findQuestions(questions, level, session.categories);
+  const pool = findQuestions(questions, level, session.week);
   if (pool.length === 0) return null;
 
   const ordered = shuffle(pool, session.seed + LEVELS.indexOf(level));

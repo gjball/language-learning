@@ -7,6 +7,7 @@ import { LiveTimer } from '@/components/live-timer';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { WeekFocus } from '@/components/week-focus';
 import { Spacing } from '@/constants/theme';
 import { LEVELS } from '@/data/questions';
 import { useNow } from '@/hooks/use-now';
@@ -109,11 +110,7 @@ export function LiveStudentScreen({ session, participants, me }: LiveStudentScre
         <ThemedText style={styles.question}>
           {question ? question.text : 'There are no questions at this level yet.'}
         </ThemedText>
-        {question && (
-          <ThemedText type="small" themeColor="textSecondary">
-            {question.level} · {question.topic}
-          </ThemedText>
-        )}
+        <WeekFocus level={session.level} week={session.week} />
       </ThemedView>
 
       <View style={styles.section}>

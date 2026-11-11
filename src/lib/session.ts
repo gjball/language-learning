@@ -4,8 +4,8 @@ import type { Participant } from '@/lib/round-robin';
 /** How the rounds are run; shared by the single-screen and phone versions. */
 export type RoundSettings = {
   level: Level;
-  /** Topics to draw questions from; empty means all topics at the level. */
-  categories: string[];
+  /** The week of the course (1 to 16), or null for any week. */
+  week: number | null;
   roundMinutes: number;
   roundCount: number;
   /**
@@ -22,7 +22,7 @@ export type SessionSettings = RoundSettings & {
 
 export const DEFAULT_ROUND_SETTINGS: RoundSettings = {
   level: 'B1',
-  categories: [],
+  week: 1,
   roundMinutes: 3,
   roundCount: 3,
   autoAdvance: false,

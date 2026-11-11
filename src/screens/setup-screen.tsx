@@ -27,7 +27,7 @@ export function SetupScreen({ settings, onChange, onStart, onBack }: SetupScreen
 
   const { participants } = settings;
   const questions = useQuestions();
-  const questionCount = findQuestions(questions, settings.level, settings.categories).length;
+  const questionCount = findQuestions(questions, settings.level, settings.week).length;
 
   const problem =
     participants.length < 2

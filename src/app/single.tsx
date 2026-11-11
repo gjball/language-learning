@@ -36,7 +36,7 @@ export default function SingleScreenSession() {
             name: 'playing',
             session: {
               ...settings,
-              questions: shuffle(findQuestions(questions, settings.level, settings.categories)),
+              questions: shuffle(findQuestions(questions, settings.level, settings.week)),
             },
             round: 0,
             questionIndex: 0,

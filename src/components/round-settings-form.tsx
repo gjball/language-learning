@@ -4,8 +4,10 @@ import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { LEVELS, findQuestions, topicsAt } from '@/data/questions';
-import { useQuestions } from '@/hooks/use-questions';
+import { ThemedView } from '@/components/themed-view';
+import { LEVELS, countForWeek, findQuestions } from '@/data/questions';
+import { WEEKS_PER_LEVEL, findWeek } from '@/data/weeks';
+import { useQuestions, useWeeks } from '@/hooks/use-questions';
 import { uniqueRoundCount } from '@/lib/round-robin';
 import { CHANGEOVER_SECONDS, type RoundSettings } from '@/lib/session';
 
@@ -21,17 +23,18 @@ type RoundSettingsFormProps = {
   levelHint?: string;
 };
 
-/** Level, topics, round length, timer mode and number of rounds. */
+/** Level, week, round length, timer mode and number of rounds. */
 export function RoundSettingsForm({
   settings,
   onChange,
   studentCount = 0,
   levelHint,
 }: RoundSettingsFormProps) {
-  const { level, categories, roundMinutes, roundCount, autoAdvance } = settings;
+  const { level, week, roundMinutes, roundCount, autoAdvance } = settings;
   const questions = useQuestions();
-  const topics = topicsAt(questions, level);
-  const questionCount = findQuestions(questions, level, categories).length;
+  const plan = findWeek(useWeeks(), level, week);
+  const available = findQuestions(questions, level, week).length;
+  const ownQuestions = week === null ? 0 : countForWeek(questions, level, week);
   const uniqueRounds = uniqueRoundCount(studentCount);
 
   return (
@@ -44,8 +47,7 @@ export function RoundSettingsForm({
               key={l}
               label={l}
               selected={l === level}
-              // Each level has its own topics, so a new level starts from "All".
-              onPress={() => l !== level && onChange({ level: l, categories: [] })}
+              onPress={() => onChange({ level: l })}
             />
           ))}
         </View>
@@ -57,31 +59,43 @@ export function RoundSettingsForm({
       </View>
 
       <View style={styles.section}>
-        <ThemedText type="smallBold">Topics</ThemedText>
+        <ThemedText type="smallBold">Week</ThemedText>
         <View style={styles.chips}>
-          <Chip
-            label="All"
-            selected={categories.length === 0}
-            onPress={() => onChange({ categories: [] })}
-          />
-          {topics.map((c) => (
+          {Array.from({ length: WEEKS_PER_LEVEL }, (_, i) => i + 1).map((n) => (
             <Chip
-              key={c}
-              label={c}
-              selected={categories.includes(c)}
-              onPress={() =>
-                onChange({
-                  categories: categories.includes(c)
-                    ? categories.filter((other) => other !== c)
-                    : [...categories, c],
-                })
-              }
+              key={n}
+              label={String(n)}
+              accessibilityLabel={`Week ${n}`}
+              selected={n === week}
+              onPress={() => onChange({ week: n })}
             />
           ))}
+          <Chip label="Any" selected={week === null} onPress={() => onChange({ week: null })} />
         </View>
-        <ThemedText type="small" themeColor="textSecondary">
-          {questionCount} {questionCount === 1 ? 'question' : 'questions'} available at {level}.
-        </ThemedText>
+        <ThemedView type="backgroundElement" style={styles.plan}>
+          {week === null ? (
+            <ThemedText type="smallBold">Any week: all {level} questions</ThemedText>
+          ) : (
+            <>
+              <ThemedText type="smallBold">
+                {level} · Week {week}
+                {plan ? `: ${plan.topic}` : ''}
+              </ThemedText>
+              {plan?.grammar ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Grammar: {plan.grammar}
+                </ThemedText>
+              ) : null}
+            </>
+          )}
+          <ThemedText type="small" themeColor={available === 0 ? 'warning' : 'textSecondary'}>
+            {available === 0
+              ? `There are no ${level} questions yet.`
+              : week !== null && ownQuestions === 0
+                ? `No questions written for this week yet, so all ${available} ${level} questions will be used.`
+                : `${available} ${available === 1 ? 'question' : 'questions'} available.`}
+          </ThemedText>
+        </ThemedView>
       </View>
 
       <View style={styles.section}>
@@ -165,6 +179,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
+  },
+  plan: {
+    padding: Spacing.three,
+    borderRadius: Spacing.three,
+    gap: Spacing.one,
   },
   roundCount: {
     minWidth: 56,
