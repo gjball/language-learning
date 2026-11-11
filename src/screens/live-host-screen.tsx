@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
+import { JoinQrCode } from '@/components/join-qr-code';
 import { LiveTimer } from '@/components/live-timer';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -114,8 +115,9 @@ export function LiveHostScreen({
             {formatCode(session.code)}
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.centered}>
-            Students open the app, tap Join, and enter this code.
+            Students open the app and enter this code.
           </ThemedText>
+          <JoinQrCode code={session.code} />
         </View>
 
         <View style={styles.section}>
